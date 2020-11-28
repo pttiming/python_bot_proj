@@ -13,7 +13,7 @@ def bot():
     incoming_num = request.values.get('From', '')
     resp = MessagingResponse()
     msg = resp.message()
-    info = {"Number": incoming_num}
+    info = {"Number": incoming_num, "Message": incoming_msg}
     responded = False
     if 'quote' in incoming_msg:
         # return a quote
@@ -32,19 +32,16 @@ def bot():
             link = f'{data["message"]}'
         msg.media(link)
         responded = True
-    if 'movie' in incoming_msg:
-        msg.body('https://54de497f262f.ngrok.io/api/movie/')
-        responded = True
     if 'me' in incoming_msg:
         msg.body(incoming_num)
         responded = True
     if 'map' in incoming_msg:
         msg.body('Here is the Location you are Looking for:')
-        msg.body('https://goo.gl/maps/PJ9YnE3kBvkjow8e8')
+        msg.body('https://goo.gl/maps/7RAw8aTtxGXhKwfq5')
         responded = True
     if 'subscribe' in incoming_msg:
         print(info)
-        r = requests.post('https://localhost:44325/api/movie/', json=info, verify=False)
+        r = requests.post('https://localhost:44325/api/message/', json=info, verify=False)
         hello = r.text
         msg.body(hello)
         responded = True
