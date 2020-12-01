@@ -1,7 +1,9 @@
 from flask import Flask, request
 import requests
 from twilio.twiml.messaging_response import MessagingResponse
-import json
+import os
+from twilio.rest import Client
+import api
 
 
 app = Flask(__name__)
@@ -15,36 +17,42 @@ def bot():
     msg = resp.message()
     info = {"Number": incoming_num, "Message": incoming_msg}
     responded = False
-    if 'quote' in incoming_msg:
-        # return a quote
-        r = requests.get('https://api.quotable.io/random')
-        if r.status_code == 200:
-            data = r.json()
-            quote = f'{data["content"]} ({data["author"]})'
-        else:
-            quote = 'I could not retrieve a quote at this time, sorry.'
-        msg.body(quote)
-        responded = True
-    if 'dog' in incoming_msg:
-        dog = requests.get('https://dog.ceo/api/breeds/image/random')
-        if dog.status_code == 200:
-            data = dog.json()
-            link = f'{data["message"]}'
-        msg.media(link)
-        responded = True
-    if 'me' in incoming_msg:
-        msg.body(incoming_num)
-        responded = True
-    if 'map' in incoming_msg:
-        msg.body('Here is the Location you are Looking for:')
-        msg.body('https://goo.gl/maps/7RAw8aTtxGXhKwfq5')
-        responded = True
     if 'subscribe' in incoming_msg:
         print(info)
         r = requests.post('https://localhost:44325/api/message/', json=info, verify=False)
         hello = r.text
         msg.body(hello)
         responded = True
+    if 'races' in incoming_msg:
+        print(info)
+        r = requests.post('https://localhost:44325/api/message/', json=info, verify=False)
+        hello = r.text
+        msg.body(hello)
+        responded = True
     if not responded:
-        msg.body('I only know about famous quotes and cats, sorry!')
+        msg.body('Welcome to the Virtual Info Tent.  Please let me know how I can help you. '
+                 'For a list of Races I can help with, reply RACES')
+    return str(resp)
+
+
+@app.route('/send', methods=['POST', 'GET'])
+def send():
+    req_data = request.get_json()
+    number = req_data['number']
+    body = req_data['body']
+    media_url = req_data['media_url']
+    resp = MessagingResponse
+    account_sid = api.account_sid
+    auth_token = api.auth_token
+    client = Client(account_sid, auth_token)
+
+    message = client.messages \
+        .create(
+            body=body,
+            media_url=media_url,
+            from_='+14144200792',
+            to=number
+        )
+
+    print(message)
     return str(resp)
